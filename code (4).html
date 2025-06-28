@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Code Formatter</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <audio id="welcomeSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" preload="auto"></audio>
+=======
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles */
+        .editor-container {
+            transition: all 0.3s ease;
+        }
+        .editor-container:hover {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .file-input-label:hover {
+            background-color: #f3f4f6;
+        }
+        .copy-btn:hover {
+            opacity: 0.9;
+        }
+        #resultEditor {
+            min-height: 300px;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-100 via-purple-200 to-pink-100" onload="playWelcomeSound()">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-blue-700 mb-2">AI Code Formatter</h1>
+            <p class="text-blue-600">Format and annotate your code with AI-powered explanations</p>
+            <p class="text-sm text-gray-500 mt-1">Customer Support: WhatsApp 
+                <a href="https://wa.me/6281519986005" class="text-blue-500">+62 815-1998-6005</a>
+            </p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Input Section -->
+            <div class="editor-container bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-6 border border-purple-200">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Input Code</h2>
+                
+                <div class="mb-4">
+                    <label for="languageSelector" class="block text-sm font-medium text-gray-700 mb-1">Select Language</label>
+                    <select id="languageSelector" class="w-full rounded-md border-purple-300 bg-purple-50 text-purple-800 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                        <option value="javascript">JavaScript</option>
+                        <option value="html">HTML</option>
+                        <option value="css">CSS</option>
+                        <option value="python">Python</option>
+                        <option value="java">Java</option>
+                        <option value="cpp">C++</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <textarea id="inputCode" class="w-full h-64 p-3 border border-purple-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-purple-50 text-purple-800 placeholder-purple-400" placeholder="Paste your code here..."></textarea>
+                </div>
+
+                <!-- File Upload -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Or upload a file</label>
+                    <label for="fileInput" class="file-input-label flex items-center justify-center w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:border-gray-400 transition">
+                        <input type="file" id="fileInput" class="hidden" />
+                        <svg class="w-6 h-6 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        <span class="text-gray-600">Click to select file</span>
+                    </label>
+                    <p class="text-xs text-gray-500 mt-1">Supports .js, .html, .css, .py, .java, .cpp files</p>
+                </div>
+
+                <button id="formatBtn" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 shadow-md">
+                    Format Code
+                </button>
+            </div>
+
+            <!-- Output Section -->
+            <div class="editor-container bg-white/80 backdrop-blur-sm rounded-lg shadow-md p-6 border border-purple-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Formatted Code</h2>
+                    <button id="copyBtn" class="copy-btn bg-blue-100 hover:bg-blue-200 text-blue-800 text-sm font-medium py-1 px-3 rounded transition shadow-sm">
+                        Copy to Clipboard
+                    </button>
+                </div>
+                
+                <div class="mb-4">
+                    <textarea id="resultEditor" class="w-full h-64 p-3 border border-blue-300 rounded-md font-mono text-sm bg-blue-50 text-blue-800 overflow-auto" readonly></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="downloadBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-md transition">
+                        Download
+                    </button>
+                    <button id="clearBtn" class="bg-red-50 hover:bg-red-100 text-red-600 font-medium py-2 px-4 rounded-md transition">
+                        Clear All
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="mt-6 text-center">
+            <p class="text-gray-600">For support contact: 
+                <a href="https://wa.me/6281519986005" class="text-blue-600 font-medium">+62 815-1998-6005</a>
+            </p>
+        </div>
+
+        <!-- How It Works Section -->
+        <div class="mt-8 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6 border border-purple-200">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">How It Works</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div class="p-4 border border-purple-200 rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 transition hover:shadow-md">
+                    <div class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600 mb-2">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-medium text-blue-700 mb-1">Paste or Upload</h3>
+                    <p class="text-blue-600 text-sm">Simply paste your code or upload a file containing your code</p>
+                </div>
+                <div class="p-4 border border-purple-200 rounded-lg bg-gradient-to-br from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 transition hover:shadow-md">
+                    <div class="text-indigo-500 mb-2">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-medium text-indigo-700 mb-1">AI Formatting</h3>
+                    <p class="text-indigo-600 text-sm">Our AI will format your code and add explanatory comments</p>
+                </div>
+                <div class="p-4 border border-purple-200 rounded-lg bg-gradient-to-br from-cyan-50 to-teal-50 hover:from-cyan-100 hover:to-teal-100 transition hover:shadow-md">
+                    <div class="text-blue-600 mb-2">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-medium text-cyan-700 mb-1">Download or Copy</h3>
+                    <p class="text-cyan-600 text-sm">Get your formatted code by copying or downloading it</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Play welcome sound
+        function playWelcomeSound() {
+            const sound = document.getElementById('welcomeSound');
+            sound.volume = 0.3; // Reduce volume
+            sound.play().catch(e => console.log('Autoplay prevented:', e));
+        }
+
+        // Main application
+        // Support Contact: WhatsApp 6281519986005
+        document.addEventListener('DOMContentLoaded', function() {
+            // Responsive adjustments
+            function handleResize() {
+                const screenWidth = window.innerWidth;
+                if (screenWidth < 768) {
+                    document.getElementById('resultEditor').style.minHeight = '200px';
+                    document.getElementById('inputCode').style.minHeight = '200px';
+                } else {
+                    document.getElementById('resultEditor').style.minHeight = '300px';
+                    document.getElementById('inputCode').style.minHeight = '300px';
+                }
+            }
+            
+            // Initial call
+            handleResize();
+            
+            // Add event listener
+            window.addEventListener('resize', handleResize);
+            // Get DOM elements
+            const inputCode = document.getElementById('inputCode');
+            const resultEditor = document.getElementById('resultEditor');
+            const formatBtn = document.getElementById('formatBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const fileInput = document.getElementById('fileInput');
+            const languageSelector = document.getElementById('languageSelector');
+            
+            // Format button click handler
+            formatBtn.addEventListener('click', function() {
+                const code = inputCode.value.trim();
+                if (!code) {
+                    alert('Please paste your code or upload a file first!');
+                    return;
+                }
+                
+                // Get selected language
+                const language = languageSelector.value;
+                
+                // Format the code (simulated AI formatting)
+                const formattedCode = formatCode(code, language);
+                resultEditor.value = formattedCode;
+            });
+            
+            // Copy button click handler
+            copyBtn.addEventListener('click', function() {
+                if (!resultEditor.value) {
+                    alert('No formatted code to copy!');
+                    return;
+                }
+                
+                resultEditor.select();
+                document.execCommand('copy');
+                
+                // Show feedback
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            });
+            
+            // Download button click handler
+            downloadBtn.addEventListener('click', function() {
+                if (!resultEditor.value) {
+                    alert('No formatted code to download!');
+                    return;
+                }
+                
+                const language = languageSelector.value;
+                let extension = '';
+                
+                // Map languages to file extensions and proper Content-Type
+                const extensionMap = {
+                    'javascript': { ext: 'js', type: 'application/javascript' },
+                    'html': { ext: 'html', type: 'text/html' }, 
+                    'css': { ext: 'css', type: 'text/css' },
+                    'python': { ext: 'py', type: 'text/x-python' },
+                    'java': { ext: 'java', type: 'text/x-java-source' },
+                    'cpp': { ext: 'cpp', type: 'text/x-c++src' }
+                };
+                
+                const fileInfo = extensionMap[language] || { ext: 'txt', type: 'text/plain' };
+                const extension = fileInfo.ext;
+                const contentType = fileInfo.type;
+                
+                const blob = new Blob([resultEditor.value], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `formatted_code.${extension}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+            
+            // Clear button click handler
+            clearBtn.addEventListener('click', function() {
+                inputCode.value = '';
+                resultEditor.value = '';
+            });
+            
+            // File input change handler
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    inputCode.value = e.target.result;
+                    
+                    // Try to detect language from file extension
+                    const fileName = file.name.toLowerCase();
+                    if (fileName.endsWith('.js')) {
+                        languageSelector.value = 'javascript';
+                    } else if (fileName.endsWith('.html') || fileName.endsWith('.htm')) {
+                        languageSelector.value = 'html';
+                    } else if (fileName.endsWith('.css')) {
+                        languageSelector.value = 'css';
+                    } else if (fileName.endsWith('.py')) {
+                        languageSelector.value = 'python';
+                    } else if (fileName.endsWith('.java')) {
+                        languageSelector.value = 'java';
+                    } else if (fileName.endsWith('.cpp') || fileName.endsWith('.c++') || fileName.endsWith('.cc')) {
+                        languageSelector.value = 'cpp';
+                    }
+                };
+                reader.readAsText(file);
+            });
+            
+            // Function to simulate AI code formatting
+            function formatCode(code, language) {
+                // Basic formatting - in a real app, this would call an AI service
+                let formatted = '';
+                
+                // Split code into lines
+                const lines = code.split('\n');
+                
+                // Add language-specific formatting
+                switch(language) {
+                    case 'javascript':
+                        formatted = formatJavaScript(lines);
+                        break;
+                    case 'html':
+                        formatted = formatHTML(lines);
+                        break;
+                    case 'css':
+                        formatted = formatCSS(lines);
+                        break;
+                    case 'python':
+                        formatted = formatPython(lines);
+                        break;
+                    case 'java':
+                        formatted = formatJava(lines);
+                        break;
+                    case 'cpp':
+                        formatted = formatCpp(lines);
+                        break;
+                    default:
+                        formatted = code;
+                }
+                
+                return formatted;
+            }
+            
+            // Format JavaScript code
+            function formatJavaScript(lines) {
+                let result = '';
+                let inFunction = false;
+                let indentLevel = 0;
+                
+                // Define common patterns
+                const funcPattern = /function\s+\w+\s*\(/;
+                const ifPattern = /if\s*\(/;
+                const forPattern = /for\s*\(/;
+                const whilePattern = /while\s*\(/;
+                
+                for (let line of lines) {
+                    line = line.trim();
+                    if (!line) continue;
+                    
+                    // Handle closing braces
+                    if (line.includes('}')) {
+                        indentLevel--;
+                    }
+                    
+                    // Add indentation
+                    result += '    '.repeat(indentLevel);
+                    
+                    // Add line with potential comments
+                    result += line;
+                    
+                    // Add explanatory comments for common patterns
+                    if (funcPattern.test(line)) {
+                        result += ' // Function declaration';
+                        inFunction = true;
+                    } else if (ifPattern.test(line)) {
+                        result += ' // Conditional statement';
+                    } else if (forPattern.test(line) || whilePattern.test(line)) {
+                        result += ' // Loop statement';
+                    } else if (line.includes('return') && inFunction) {
+                        result += ' // Return statement';
+                    } else if (line.includes('console.log')) {
+                        result += ' // Output to console';
+                    }
+                    
+                    result += '\n';
+                    
+                    // Handle opening braces
+                    if (line.includes('{')) {
+                        indentLevel++;
+                    }
+                    
+                    // Reset function flag after closing brace
+                    if (line.includes('}') && inFunction) {
+                        inFunction = false;
+                    }
+                }
+                
+                return result;
+            }
+            
+            // Format HTML code (simplified)
+            function formatHTML(lines) {
+                let result = '';
+                let indentLevel = 0;
+                
+                for (let line of lines) {
+                    line = line.trim();
+                    if (!line) continue;
+                    
+                    // Handle closing tags
+                    if (line.startsWith('</')) {
+                        indentLevel--;
+                    }
+                    
+                    // Add indentation
+                    result += '    '.repeat(indentLevel);
+                    
+                    // Add line
+                    result += line;
+                    
+                    // Add comments for common elements
+                    if (line.startsWith('<!DOCTYPE')) {
+                        result += ' // Document type declaration';
+                    } else if (line.startsWith('<html')) {
+                        result += ' // HTML root element';
+                    } else if (line.startsWith('<head')) {
+                        result += ' // Document head section';
+                    } else if (line.startsWith('<body')) {
+                        result += ' // Document body section';
+                    } else if (line.startsWith('<script')) {
+                        result += ' // JavaScript reference or code';
+                    } else if (line.startsWith('<link')) {
+                        result += ' // External resource link';
+                    }
+                    
+                    result += '\n';
+                    
+                    // Handle opening tags
+                    if (line.startsWith('<') && !line.startsWith('</') && 
+                        !line.includes('/>') && line.endsWith('>')) {
+                        indentLevel++;
+                    }
+                }
+                
+                return result;
+            }
+            
+            // Other formatting functions would follow similar patterns...
+            // For brevity, I'll include simplified versions for other languages
+            
+            function formatCSS(lines) {
+                let result = '';
+                let inRule = false;
+                
+                for (let line of lines) {
+                    line = line.trim();
+                    if (!line) continue;
+                    
+                    if (line.includes('{')) {
+                        result += line + ' // CSS rule declaration\n';
+                        inRule = true;
+                    } else if (line.includes('}')) {
+                        result += line + ' // End of CSS rule\n';
+                        inRule = false;
+                    } else if (inRule) {
+                        result += '    ' + line + ' // CSS property\n';
+                    } else {
+                        result += line + '\n';
+                    }
+                }
+                
+                return result;
+            }
+            
+            function formatPython(lines) {
+                let result = '';
+                let indentLevel = 0;
+                
+                for (let line of lines) {
+                    line = line.trim();
+                    if (!line) continue;
+                    
+                    if (line.startswith('def ')) {
+                        result += line + ' # Function definition\n';
+                        indentLevel++;
+                    } else if (line.startswith('if ') || line.startswith('elif ') || line.startswith('else:')) {
+                        result += line + ' # Conditional statement\n';
+                        indentLevel++;
+                    } else if (line.startswith('for ') || line.startswith('while ')) {
+                        result += line + ' # Loop statement\n';
+                        indentLevel++;
+                    } else {
+                        result += '    '.repeat(indentLevel) + line + '\n';
+                    }
+                    
+                    // Python indentation is maintained
+                    // This is a simplified version
+                }
+                
+                return result;
+            }
+            
+            function formatJava(lines) {
+                let result = '';
+                let inClass = false;
+                let inMethod = false;
+                let indentLevel = 0;
+                
+                for (let line of lines) {
+                    line = line.trim();
+                    if (!line) continue;
+                    
+                    // Handle closing braces
+                    if (line.includes('}')) {
+                        indentLevel--;
+                    }
+                    
+                    // Add indentation
+                    result += '    '.repeat(indentLevel);
+                    
+                    // Add line with comments
+                    if (line.startsWith('public class') || line.startsWith('class')) {
+                        result += line + ' // Class declaration\n';
+                        inClass = true;
+                    } else if (line.startsWith('public static void main')) {
+                        result += line + ' // Main method\n';
+                        inMethod = true;
+                    } else if (line.startsWith('public') || line.startsWith('private') || line.startsWith('protected')) {
+                        result += line + ' // Method or field declaration\n';
+                        if (line.includes('(') && line.includes(')') && line.includes('{')) {
+                            inMethod = true;
+                        }
+                    } else if (line.startsWith('for') || line.startsWith('while') || line.startsWith('if')) {
+                        result += line + ' // Control statement\n';
+                    } else {
+                        result += line + '\n';
+                    }
+                    
+                    // Handle opening braces
+                    if (line.includes('{')) {
+                        indentLevel++;
+                    }
+                    
+                    // Reset flags as needed
+                    if (line.includes('}') && inMethod) {
+                        inMethod = false;
+                    }
+                    if (line.includes('}') && inClass) {
+                        inClass = false;
+                    }
+                }
+                
+                return result;
+            }
+            
+            function formatCpp(lines) {
+                let result = '';
+                let inClass = false;
+                let inFunction = false;
+                let indentLevel = 0;
+                
+                for (let line of lines) {
+                    line = line.trim();
+                    if (!line) continue;
+                    
+                    // Handle closing braces
+                    if (line.includes('}')) {
+                        indentLevel--;
+                    }
+                    
+                    // Add indentation
+                    result += '    '.repeat(indentLevel);
+                    
+                    // Add line with comments
+                    if (line.startsWith('class') || line.startsWith('struct')) {
+                        result += line + ' // Class/struct declaration\n';
+                        inClass = true;
+                    } else if (line.startsWith('int main()')) {
+                        result += line + ' // Main function\n';
+                        inFunction = true;
+                    } else if (line.startsWith('void ') || line.startsWith('int ') || line.startsWith('double ')) {
+                        if (line.includes('(') && line.includes(')') && line.includes('{')) {
+                            result += line + ' // Function definition\n';
+                            inFunction = true;
+                        } else if (line.includes(';')) {
+                            result += line + ' // Function declaration or variable\n';
+                        }
+                    } else if (line.startsWith('for') || line.startsWith('while') || line.startsWith('if')) {
+                        result += line + ' // Control statement\n';
+                    } else if (line.startsWith('#include')) {
+                        result += line + ' // Header inclusion\n';
+                    } else {
+                        result += line + '\n';
+                    }
+                    
+                    // Handle opening braces
+                    if (line.includes('{')) {
+                        indentLevel++;
+                    }
+                    
+                    // Reset flags as needed
+                    if (line.includes('}') && inFunction) {
+                        inFunction = false;
+                    }
+                    if (line.includes('}') && inClass) {
+                        inClass = false;
+                    }
+                }
+                
+                return result;
+            }
+        });
+    </script>
+</body>
+</html>
+
