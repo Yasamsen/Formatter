@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Code Formatter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        .editor-container, .preview-container {
+            height: 300px;
+        }
+        .formatted-code {
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            background-color: #f5f5f5;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            overflow-y: auto;
+            height: 100%;
+        }
+        .gutter {
+            background-color: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            color: #495057;
+            font-family: 'Courier New', monospace;
+            padding: 0.5rem;
+            text-align: right;
+            user-select: none;
+        }
+        .tab-indent {
+            margin-left: 2em;
+        }
+        .active-tab {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+            font-weight: 500;
+        }
+        @media (min-width: 768px) {
+            .editor-container, .preview-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex flex-col md:flex-row items-center mb-6 p-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl shadow-lg">
+            <div class="mb-4 md:mb-0 md:mr-6">
+                <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/b9bb6ab8-d8fe-4fc1-99ba-1a7ee7710a22.png" alt="Cute anime girl Alya with pink hair" class="rounded-full border-4 border-white shadow-md w-20 h-20 md:w-24 md:h-24" />
+            </div>
+            <div class="text-center md:text-left">
+                <h1 class="text-2xl md:text-3xl font-bold text-white">Code Beauty</h1>
+                <p class="text-gray-200 shadow-sm">Code Beauty - Developed by Yasam Developer</p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 md:gap-3 mb-6 justify-center md:justify-start">
+            <button id="format-btn" class="px-4 py-2 bg-pink-500 text-white rounded-full hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-500 shadow-lg transition transform hover:scale-105">
+                Format Code
+            </button>
+            
+            <select id="language-select" class="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            
+            <select id="spacing-select" class="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="2">2 spaces</option>
+                <option value="4" selected>4 spaces</option>
+                <option value="tab">Tab</option>
+                <option value="8">8 spaces</option>
+            </select>
+                <option value="javascript">JavaScript</option>
+                <option value="html">HTML</option>
+                <option value="css">CSS</option>
+                <option value="python">Python</option>
+                <option value="java">Java</option>
+                <option value="csharp">C#</option>
+                <option value="php">PHP</option>
+            </select>
+            
+            <button id="copy-btn" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500">
+                Copy to Clipboard
+            </button>
+            
+            <button id="clear-btn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400">
+                Clear
+            </button>
+            
+            <button id="upload-btn" class="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                Upload File
+                <input type="file" id="file-input" class="hidden">
+            </button>
+            
+            <button id="download-btn" class="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                Download
+            </button>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-6 mb-8 max-w-6xl mx-auto">
+            <div class="flex-1 rounded-xl overflow-hidden bg-gradient-to-b from-gray-900 to-gray-800 shadow-xl border border-gray-700">
+                <div class="bg-gray-800 px-4 py-3 font-medium text-gray-200">
+                    Input Code
+                </div>
+                <div class="editor-container">
+                    <textarea id="code-input" class="w-full h-full p-3 font-mono focus:outline-none resize-none" placeholder="Paste your code here..."></textarea>
+                </div>
+            </div>
+
+            <div class="flex-1 border rounded-lg overflow-hidden shadow-sm bg-white">
+                <div class="bg-gray-100 px-4 py-2 border-b font-medium text-gray-700">
+                    Formatted Output
+                </div>
+                <div class="preview-container flex">
+                    <div id="line-numbers" class="gutter overflow-y-auto"></div>
+                    <pre id="formatted-output" class="formatted-code flex-1 bg-gray-900 text-green-400"></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="bg-white p-4 rounded-lg shadow-sm border">
+                <h3 class="font-medium text-lg mb-2">How to Use</h3>
+                <ol class="list-decimal pl-5 space-y-1 text-gray-700">
+                    <li>Paste your code in the input box</li>
+                    <li>Select appropriate language</li>
+                    <li>Click "Format Code" button</li>
+                    <li>Copy the formatted result</li>
+                    <li>Or download as formatted file</li>
+                    <li>You can also upload existing code files</li>
+                </ol>
+            </div>
+            
+            <div class="bg-white p-4 rounded-lg shadow-sm border">
+                <h3 class="font-medium text-lg mb-2">Supported Languages</h3>
+                <ul class="list-disc pl-5 space-y-1 text-gray-700">
+                    <li>JavaScript/TypeScript</li>
+                    <li>HTML/XML</li>
+                    <li>CSS/SASS</li>
+                    <li>Python</li>
+                    <li>Java/C#</li>
+                    <li>PHP</li>
+                </ul>
+            </div>
+            
+            <div class="bg-white p-4 rounded-lg shadow-sm border">
+                <div class="flex items-center mb-2">
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/a3491834-d9ab-497c-b88e-ce0023165949.png" alt="Sparkle icon representing premium features with gradient colors" />
+                    <h3 class="font-medium text-lg ml-2">Pro Features</h3>
+                </div>
+                <ul class="list-disc pl-5 space-y-1 text-gray-700">
+                    <li>Syntax highlighting</li>
+                    <li>Custom indent sizes</li>
+                    <li>Multiple formatting styles</li>
+                    <li>Dark mode</li>
+                    <li>Import/export from cloud storage</li>
+                    <li>Batch processing multiple files</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="mt-10 text-center p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+            <p class="text-gray-600 mb-2">Developed by</p>
+            <h3 class="text-xl font-bold text-purple-600 mb-1">Yasam Developer</h3>
+            <a href="https://wa.me/6281519986005" 
+               class="inline-flex items-center mt-2 px-4 py-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors"
+               target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20.5 3.5a10 10 0 1 1-20 0 10 10 0 0 1 20 0z"/>
+                    <path fill="#fff" d="M16.5 13c-.4 0-.8-.2-1.1-.4-.2-.2-.5-.4-.8-.4-.2 0-.4.1-.6.2-.4.3-.4.6-.7.8-.1.2-.3.4-.5.6-.3.3-.7.7-1.5.5l-4.9-1.2c-.7-.2-1.2-.6-1.5-1.1L5.8 10c-.3-.6-.3-1.2 0-1.8l.4-.8c0-.1 0-.2.1-.3l.8-1.4c.2-.4.7-.7 1.1-.7h1.4c.3 0 .6.3.6.6v.2c0 .4-.2.7-.3 1l-.8 1.4c0 .1 0 .2.1.3l1 1.9c.1.2.4.4.7.4h.3l.5-1c.2-.3.3-.6.2-1V7.6c0-.4.2-.7.5-.9.4-.2.7-.2 1.1 0l3.1 1.9c.3.2.5.5.5.9 0 .5-.3.8-.6 1.1z"/>
+                </svg>
+                WhatsApp: 0815-1998-6005
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const codeInput = document.getElementById('code-input');
+            const formattedOutput = document.getElementById('formatted-output');
+            const lineNumbers = document.getElementById('line-numbers');
+            const formatBtn = document.getElementById('format-btn');
+            const copyBtn = document.getElementById('copy-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const languageSelect = document.getElementById('language-select');
+            
+            // Format code
+            formatBtn.addEventListener('click', function() {
+                const code = codeInput.value.trim();
+                if (!code) return;
+                
+                const language = languageSelect.value;
+                const formattedCode = formatCode(code, language);
+                
+                formattedOutput.textContent = formattedCode;
+                updateLineNumbers(formattedCode);
+            });
+            
+            // Copy to clipboard
+            copyBtn.addEventListener('click', function() {
+                const text = formattedOutput.textContent;
+                if (!text) return;
+                
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        copyBtn.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyBtn.textContent = 'Copy to Clipboard';
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                    });
+            });
+            
+            // Clear input and output
+            clearBtn.addEventListener('click', function() {
+                codeInput.value = '';
+                formattedOutput.textContent = '';
+                lineNumbers.innerHTML = '';
+            });
+            
+            // Auto-update line numbers when input changes
+            codeInput.addEventListener('input', function() {
+                updateLineNumbers(codeInput.value);
+            });
+            
+            // Format code based on language
+            function formatCode(code, language) {
+                // Basic formatting logic for different languages
+                switch(language) {
+                    case 'javascript':
+                        return formatJavaScript(code);
+                    case 'html':
+                        return formatHTML(code);
+                    case 'css':
+                        return formatCSS(code);
+                    case 'python':
+                        return formatPython(code);
+                    default:
+                        return basicFormatting(code);
+                }
+            }
+            
+            // JavaScript formatting
+            function formatJavaScript(code) {
+                let result = '';
+                let indentLevel = 0;
+                const lines = code.split('\n');
+                const spacingOption = document.getElementById('spacing-select').value;
+                const indent = spacingOption === 'tab' ? '\t' : ' '.repeat(spacingOption === '8' ? 8 : (spacingOption === '2' ? 2 : 4));
+                
+                lines.forEach(line => {
+                    line = line.trim();
+                    
+                    // Reduce indent after closing brace/bracket
+                    if (line.match(/^\s*[}\]]/) && indentLevel > 0) {
+                        indentLevel--;
+                    }
+                    
+                    // Add current indent
+                    result += indent.repeat(indentLevel) + line + '\n';
+                    
+                    // Increase indent after opening brace/bracket
+                    if (line.match(/[{\[]\s*$/)) {
+                        indentLevel++;
+                    }
+                });
+                
+                return result;
+            }
+            
+            // HTML formatting
+            function formatHTML(code) {
+                let result = '';
+                let indentLevel = 0;
+                const lines = code.split(/(<[^>]*>)/);
+                const spacingOption = document.getElementById('spacing-select').value;
+                const indent = spacingOption === 'tab' ? '\t' : ' '.repeat(spacingOption === '8' ? 8 : (spacingOption === '2' ? 2 : 4));
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    // Closing tag - decrease indent
+                    if (line.startsWith('</')) {
+                        if (indentLevel > 0) indentLevel--;
+                        result += indent.repeat(indentLevel) + line + '\n';
+                    } 
+                    // Opening tag - increase indent
+                    else if (line.startsWith('<') && !line.endsWith('/>') && !line.match(/<br|hr|img|input|meta|link/)) {
+                        result += indent.repeat(indentLevel) + line + '\n';
+                        indentLevel++;
+                    } 
+                    else {
+                        result += '    '.repeat(indentLevel) + line + '\n';
+                    }
+                }
+                
+                return result;
+            }
+            
+            // CSS formatting
+            function formatCSS(code) {
+                let result = '';
+                let indentLevel = 0;
+                const lines = code.split('\n');
+                const spacingOption = document.getElementById('spacing-select').value;
+                const indent = spacingOption === 'tab' ? '\t' : ' '.repeat(spacingOption === '8' ? 8 : (spacingOption === '2' ? 2 : 4));
+                
+                lines.forEach(line => {
+                    line = line.trim();
+                    
+                    if (line.endsWith('{')) {
+                        result += indent.repeat(indentLevel) + line + '\n';
+                        indentLevel++;
+                    } else if (line.endsWith('}')) {
+                        indentLevel--;
+                        result += indent.repeat(indentLevel) + line + '\n';
+                    } else if (line) {
+                        result += indent.repeat(indentLevel) + line + '\n';
+                    }
+                });
+                
+                return result;
+            }
+            
+            // Python formatting (basic)
+            function formatPython(code) {
+                return code.split('\n').map(line => line.trim()).join('\n');
+            }
+            
+            // Basic formatting for other languages
+            function basicFormatting(code) {
+                return code.split('\n').map(line => line.trim()).join('\n');
+            }
+            
+            // Update line numbers
+            function updateLineNumbers(code) {
+                const lines = code.split('\n');
+                lineNumbers.innerHTML = '';
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const lineNum = document.createElement('div');
+                    lineNum.textContent = i + 1;
+                    lineNumbers.appendChild(lineNum);
+                }
+            }
+            
+            // File upload handler
+            document.getElementById('upload-btn').addEventListener('click', function() {
+                document.getElementById('file-input').click();
+            });
+            
+            document.getElementById('file-input').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    codeInput.value = e.target.result;
+                    formatBtn.click();
+                };
+                reader.readAsText(file);
+            });
+            
+            // File download handler
+            document.getElementById('download-btn').addEventListener('click', function() {
+                const code = formattedOutput.textContent;
+                if (!code) return;
+                
+                const blob = new Blob([code], {type: 'text/plain'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `formatted-code.${languageSelect.value}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+            
+            // Initialize with sample code
+            const sampleCode = `function example() {
+if (condition) {
+console.log('Hello');
+for(let i=0;i<10;i++) {
+// Do something
+}
+}
+}`;
+            
+            codeInput.value = sampleCode;
+            formatBtn.click();
+
+            // Music control
+            const musicControl = document.getElementById('music-control');
+            const bgMusic = document.getElementById('bg-music');
+            musicControl.addEventListener('click', function() {
+                if (bgMusic.paused) {
+                    bgMusic.play();
+                    musicControl.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v16M9 19l12-3M9 10l12-3"/></svg>';
+                } else {
+                    bgMusic.pause();
+                    musicControl.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v14m-7-7h.01M12 5v14m-7-7h.01"/></svg>';
+                }
+            });
+        });
+
+        // Auto-play music (muted by default to comply with browser policies)
+        document.addEventListener('DOMContentLoaded', function() {
+            const bgMusic = document.getElementById('bg-music');
+            // Attempt to unmute and play
+            bgMusic.muted = false;
+            bgMusic.volume = 0.3;
+            const playPromise = bgMusic.play();
+            
+            // Handle autoplay restrictions
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    // Show music control if autoplay fails
+                    document.getElementById('music-control').style.display = 'flex';
+                });
+            }
+        });
+    </script>
+    <audio id="bg-music" loop autoplay muted>
+        <source src="https://files.catbox.moe/fjonka.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <div id="music-control" style="display: none">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v16M9 19l12-3M9 10l12-3"/>
+        </svg>
+    </div>
+</body>
+</html>
+
